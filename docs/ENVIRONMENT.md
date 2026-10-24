@@ -23,7 +23,7 @@
 3. An Apple ID signed into Xcode.
    - **Free Personal Team**: installs expire after **7 days** and must be reinstalled; capability limits apply (App Groups needed for widgets are reported as restricted on free teams: source mybyways.com 2016, **NOT VERIFIED for current Xcode**).
    - **Apple Developer Program**: USD 99/year (published price; confirm in your region). 1-year installs, TestFlight, App Store. **Paid; needs Ben's decision. Not required until widgets or longer-lived installs are needed.**
-4. A way for Claude to run on the Mac. Options:
+4. **Decision (ADR 0002): Ben is on Windows; builds run on GitHub Actions macOS runners.** Options considered for running on a Mac:
    - **Recommended: Claude Code Remote Control session on the Mac.** This thread can start it; it runs `scripts/verify.sh`, `xcodebuild` and simulator tests locally with Ben's tools and reports back.
    - Run Claude Code directly in a terminal on the Mac in the repo.
    - Ben runs `scripts/verify.sh all` and pastes the output.
