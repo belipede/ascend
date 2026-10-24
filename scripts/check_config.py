@@ -11,6 +11,7 @@ REQUIRED_AGENTS = {
 }
 REQUIRED_SKILLS = {"plan-feature", "test-and-verify", "review-changes", "jury-review", "release-check"}
 READ_ONLY = {"engineering-manager", "code-reviewer"}
+WRITE_TOOLS = {"Write", "Edit", "NotebookEdit"}
 
 def frontmatter(path):
     text = path.read_text()
@@ -19,6 +20,8 @@ def frontmatter(path):
         return None, ""
     fields = {}
     for line in m.group(1).splitlines():
+        if line.lstrip().startswith("- "):
+            errors.append(f"{path}: use comma-separated values, not YAML lists, in frontmatter")
         if ":" in line:
             k, v = line.split(":", 1)
             fields[k.strip()] = v.strip()
@@ -43,10 +46,16 @@ for p in sorted((ROOT / ".claude/agents").rglob("*.md")):
     if name in names:
         errors.append(f"{rel}: duplicate agent name {name!r} (also {names[name]})")
     names[name] = rel
+    if name in READ_ONLY or "jury" in p.parts:
+        tools = {t.strip() for t in fm.get("tools", "").split(",") if t.strip()}
+        if not tools:
+            errors.append(f"{rel}: read-only agent {name} needs an explicit tools list")
+        if tools & WRITE_TOOLS:
+            errors.append(f"{rel}: read-only agent {name} has write tools {sorted(tools & WRITE_TOOLS)}")
     if name in READ_ONLY:
-        tools = {t.strip() for t in fm.get("tools", "").split(",")}
-        if tools & {"Write", "Edit", "NotebookEdit"} or "Write" not in fm.get("disallowedTools", ""):
-            errors.append(f"{rel}: {name} must not have write tools")
+        denied = {t.strip() for t in fm.get("disallowedTools", "").split(",")}
+        if not WRITE_TOOLS <= denied:
+            errors.append(f"{rel}: {name} must list Write, Edit, NotebookEdit in disallowedTools")
 for missing in sorted(REQUIRED_AGENTS - names.keys()):
     errors.append(f"missing agent {missing}")
 

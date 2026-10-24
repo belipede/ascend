@@ -42,7 +42,7 @@ Business logic lives in the `AscendCore` Swift package with no SwiftUI or SwiftD
 3. `/test-and-verify` and record actual output.
 4. `qa-engineer` assesses; then `/review-changes` (engineering-manager, plus code-reviewer for risky changes).
 5. Fix findings, rerun tests, re-review. Max 3 review-fix cycles, then escalate to Ben.
-6. Save the EM report to `docs/reviews/YYYY-MM-DD-<name>.md`. Merge only with APPROVED or APPROVED WITH NON-BLOCKING FINDINGS.
+6. Save the EM report to `docs/reviews/YYYY-MM-DD-<name>-cycle<N>.md`. Merge only with APPROVED or APPROVED WITH NON-BLOCKING FINDINGS.
 
 The main agent never writes or edits an EM verdict. The jury never overrides an EM rejection. Ben has final say on product, budget and major commitments.
 

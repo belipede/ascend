@@ -17,11 +17,11 @@ Ascend.xcodeproj
 Why two packages: date/streak/recurrence/progress logic is where correctness risk lives. Keeping it free of SwiftData/SwiftUI makes it fast to test, deterministic (injected `Calendar` and clock), and runnable without a simulator. Models in `AscendData` convert to `AscendCore` value snapshots for calculations. No other layers (no view models per screen by default, no protocols with one implementation).
 
 ## Key data rules
-- **DayKey** `(year, month, day)` in the user's calendar is how anything "per day" is stored (habit logs, rest days). Never a raw `Date` for a calendar day, never seconds ÷ 86400.
+- **DayKey** `(year, month, day)` in the user's calendar is how anything "per day" is stored (habit logs, rest days). Never a raw `Date` for a calendar day, never seconds ÷ 86400. A DayKey is fixed when logged, using the time zone current at that moment, and is never recomputed after travel.
 - **Schedules are versioned**: a habit has `ScheduleVersion(effectiveFrom: DayKey, rule)`. Changing a schedule adds a version; past days are evaluated against the rule that applied then.
 - **History is append-only in practice**: archive instead of delete by default. Hard delete is explicit, confirmed, and cascades deliberately (documented per model).
 - **Stable UUIDs + createdAt/modifiedAt** on every record (cheap now; keeps a later sync option open). No sync built.
-- **Goal progress has one source per event**: a `ProgressEntry` has `goalID`, `amount`, `day`, and an optional `sourceID` (habit log or task). Unique `(goalID, sourceID)` prevents double counting when a task and a habit both relate to a goal. A goal declares its measure (count, minutes, pages, percent of milestones).
+- **Goal progress has one source per event**: a `ProgressEntry` has `goalID`, `amount`, `day`, and an optional `sourceID` (habit log or task). This stops the *same* event counting twice. When a task and a habit both relate to one goal they are different events, so the rule is: each goal declares **one measure** (count, minutes, pages, percent of milestones) and **which linked items feed it**; items not chosen as a source are shown as linked context but add no progress. Undo deletes the entry created by that source. Duplicate checks are done explicitly in the repository (SwiftData `#Unique` upserts silently, and may not suit CloudKit). Final rules and tests: Phase 2 plan.
 - Hierarchy: Goal (yearly/monthly/weekly/daily period) → Milestone → linked Habits / Tasks. "Weekly plan" is a view over the week's tasks/habits linked to goals, not a separate stored entity (decision for MVP).
 
 ## Streak definition (draft, to be confirmed in Phase 2 plan)
@@ -31,7 +31,9 @@ Why two packages: date/streak/recurrence/progress logic is where correctness ris
 - Missing a day resets *current* streak only; longest streak, totals and completion rates are kept and shown. Completion rate = completed scheduled days ÷ scheduled days in window (7/30/365).
 
 ## Persistence
-SwiftData store in the App Group container, shared by app and widget extension. Every schema is a `VersionedSchema`; every change ships with a migration stage and a test that opens a store from each prior version. Manual **JSON export** (Files/share sheet) from day one as the backup/recovery path.
+SwiftData store in the App Group container, shared by app and widget extension. Every schema is a `VersionedSchema`; every change ships with a migration stage and a test that opens a store from each prior version. Manual **JSON export** (Files/share sheet) from day one. Export alone is data portability, not recovery: **import/restore** is a proposed MVP item (Phase 5) and is only called a backup once a restore has been tested.
+
+App and widget both write to the store (the widget via App Intents). Rule: every write goes through `AscendData` repositories; the app refreshes its model context when it returns to the foreground and after a widget-intent write (persistent history tracking if needed). Concurrency tests: Phase 4.
 
 ## Notifications
 Local only (`UNUserNotificationCenter`). Deterministic identifiers (`habit.<uuid>.<slot>`) so rescheduling replaces rather than duplicates. A single `ReminderPlanner` (pure, in Core) computes the desired set; a small scheduler diffs it against pending requests. Respect the 64-pending limit by scheduling the nearest occurrences. Denied permission → reminders UI shows a calm explanation with a Settings link; the app works without them.

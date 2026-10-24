@@ -13,6 +13,8 @@ xcuserdata/
 *.p8
 *.mobileprovision
 *.provisionprofile
+*.pem
+*.key
 .env
 *.env
 # Claude Code local settings

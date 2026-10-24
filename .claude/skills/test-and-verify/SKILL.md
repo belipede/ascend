@@ -3,7 +3,7 @@ name: test-and-verify
 description: Run the builds and tests this machine can run, investigate failures, and report actual results with NOT VERIFIED for anything that could not run. Use after any code change and before any review.
 argument-hint: [optional scope, e.g. core | app | all]
 ---
-Verify scope: ${ARGUMENTS:-all}
+Verify scope: $ARGUMENTS (empty means all)
 
 1. Run `scripts/verify.sh $ARGUMENTS` and capture the full output. It detects the platform:
    - Linux with `swift`: builds and tests the `AscendCore` package only.

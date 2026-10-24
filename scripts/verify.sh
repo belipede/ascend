@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # Runs every check this machine can run. Prints NOT VERIFIED for the rest.
 # Exit: 0 = everything ran and passed, 1 = a check failed, 2 = passed but partial.
-# Usage: scripts/verify.sh [all|config|core|app]
+# Usage: scripts/verify.sh [--ci] [all|config|core|app]
+# --ci: any NOT VERIFIED other than the manual device check counts as a failure.
 set -uo pipefail
 cd "$(dirname "$0")/.."
+CI=0; [[ "${1:-}" == "--ci" ]] && { CI=1; shift; }
 SCOPE="${1:-all}"
 FAIL=0; PARTIAL=0
 pass() { echo "PASS: $*"; }
 fail() { echo "FAIL: $*"; FAIL=1; }
-nv()   { echo "NOT VERIFIED: $*"; PARTIAL=1; }
+nv()   { echo "NOT VERIFIED: $*"; PARTIAL=1; (( CI )) && [[ "$*" != physical-device* ]] && FAIL=1; }
 want() { [[ "$SCOPE" == all || "$SCOPE" == "$1" ]]; }
 
 echo "== Machine: $(uname -s) $(uname -m)"
@@ -17,6 +19,7 @@ if want config; then
   echo "== Config checks"
   if python3 scripts/check_config.py; then pass "agent and skill definitions"; else fail "agent and skill definitions"; fi
   if scripts/git-hooks/pre-commit --all; then pass "secret scan of tracked files"; else fail "secret scan of tracked files"; fi
+  if scripts/test_hooks.sh; then pass "secret-scan hook regression tests"; else fail "secret-scan hook regression tests"; fi
 fi
 
 if want core; then

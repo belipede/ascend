@@ -36,7 +36,8 @@ Install, launch, kill and relaunch (data persists), log a habit, undo it, comple
 |---|---|
 | `scripts/verify.sh` (config lint, secret scan, core/app tests where possible) | Configured, ran on Linux |
 | Git pre-commit secret scan (`scripts/install-hooks.sh`) | Configured in this clone; must be installed per clone |
-| `.claude/settings.json` deny/ask rules (force push, hard reset, signing files, entitlements, uploads) | Configured; applies to Claude Code sessions in this repo |
+| `.claude/settings.json` deny/ask rules (force push, hard reset, git clean, rm -rf, signing files, entitlements, project file, uploads) | Configured. **Best-effort prefix matches**: variants (e.g. `cat` of a key via Bash) can slip past. The real safeguards are the CLAUDE.md rules plus Ben's approval |
 | EM / code-reviewer read-only | Write/Edit tools removed. **Bash is still available to them** for git and tests, so read-only is by instruction, not by sandbox |
 | Merge only after EM approval | **Process only. Not technically enforced.** Needs GitHub branch protection + CI once a repo exists |
-| CI on macOS | **Not configured.** Proposed in docs/ci/ios-ci.yml.proposed; costs GitHub Actions macOS minutes on private repos (decision for Ben) |
+| CI on macOS | **Not configured.** Proposed in docs/ci/ios-ci.yml.proposed (`verify.sh --ci` fails on anything NOT VERIFIED except the device check); uses GitHub Actions macOS minutes (decision for Ben) |
+| Secret-scan hook regression tests (`scripts/test_hooks.sh`, run by verify.sh) | Configured, ran on Linux |
