@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 # Blocks commits containing signing material, env files or likely secrets.
-# Scans the STAGED content (what will actually be committed), including renames.
+# Scans the STAGED content (what will actually be committed): adds, edits, renames, copies, type changes.
 # --all scans every file in the index instead of only staged changes.
 set -uo pipefail
-PATTERN='-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}'
-SELF=scripts/git-hooks/pre-commit
+shopt -s nocasematch
+# Pattern pieces are split so this file does not match itself.
+PATTERN='-----BEGIN [A-Z ]*PRIV''ATE KEY-----|gh''p_[A-Za-z0-9]{30,}|github''_pat_[A-Za-z0-9_]{30,}|sk-''ant-[A-Za-z0-9_-]{20,}|AK''IA[0-9A-Z]{16}'
 BAD=0
 if [[ "${1:-}" == "--all" ]]; then
   list() { git ls-files -z; }
 else
-  list() { git diff --cached -z --name-only --diff-filter=ACMR; }
+  list() { git diff --cached -z --name-only --diff-filter=d; }
 fi
 while IFS= read -r -d '' f; do
   case "$f" in
     *.p12|*.cer|*.mobileprovision|*.provisionprofile|*.p8|*.pem|*.key|.env|*.env|*/.env|*AuthKey_*)
       echo "  blocked file type: $f"; BAD=1; continue ;;
   esac
-  [[ "$f" == "$SELF" ]] && continue
-  # ":<path>" is the blob in the index, i.e. exactly what gets committed.
-  if git show ":$f" 2>/dev/null | grep -qIE -- "$PATTERN"; then
+  # ":<path>" is the blob in the index, i.e. exactly what gets committed. -a: scan binary content too.
+  if git show ":$f" 2>/dev/null | grep -aqE -- "$PATTERN"; then
     echo "  possible secret in: $f"; BAD=1
   fi
 done < <(list)
