@@ -1,0 +1,21 @@
+# Xcode
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+# SwiftPM
+.build/
+.swiftpm/
+# Secrets and signing (never commit)
+*.p12
+*.cer
+*.p8
+*.mobileprovision
+*.provisionprofile
+.env
+*.env
+# Claude Code local settings
+.claude/settings.local.json
+# macOS
+.DS_Store

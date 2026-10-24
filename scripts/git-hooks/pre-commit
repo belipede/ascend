@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Blocks commits containing signing material, env files or likely secrets.
+# --all scans every tracked file instead of the staged set.
+set -uo pipefail
+if [[ "${1:-}" == "--all" ]]; then FILES=$(git ls-files); else FILES=$(git diff --cached --name-only --diff-filter=ACM); fi
+BAD=0
+for f in $FILES; do
+  case "$f" in
+    *.p12|*.cer|*.mobileprovision|*.provisionprofile|*.p8|*.pem|*.key|.env|*.env|*/.env|*AuthKey_*)
+      echo "  blocked file type: $f"; BAD=1; continue ;;
+  esac
+  [[ -f "$f" ]] || continue
+  [[ "$f" == scripts/git-hooks/pre-commit ]] && continue
+  if grep -nIE -- '-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}' "$f"; then
+    echo "  possible secret in: $f"; BAD=1
+  fi
+done
+(( BAD )) && { echo "pre-commit: refusing to commit secrets. Remove them (see CLAUDE.md)."; exit 1; }
+exit 0

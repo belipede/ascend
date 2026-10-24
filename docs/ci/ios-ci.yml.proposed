@@ -1,0 +1,13 @@
+# PROPOSED, NOT ACTIVE. Move to .github/workflows/ios-ci.yml only after Ben approves.
+# macOS runner minutes are billed at a multiplier on private repos; check current GitHub pricing first.
+name: ios-ci
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/verify.sh all || [ $? -eq 2 ]   # exit 2 = partial (device checks are always manual)
