@@ -17,7 +17,7 @@
 **Key assumption:**
 - Data never leaves the device before launch.
 - Ben has not confirmed his jurisdiction or the launch markets, so the applicable regimes are unknown. Possible regimes include GDPR/UK GDPR, Singapore PDPA, US state laws and COPPA.
-- OPINION: the user's email suggests a possible Singapore link. That is not confirmed, so please confirm.
+- [Line redacted by main agent: it speculated about Ben's location from account details. Ben's jurisdiction is unconfirmed.]
 
 **Suggested improvement:**
 1. Keep the App Group store and the JSON export on-device only. Warn users that an export file is unencrypted and sits outside the app's protection once shared.
